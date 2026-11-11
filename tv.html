@@ -51,6 +51,31 @@
   .row.now { color:var(--gold); font-weight:700; }
   footer { text-align:center; color:var(--sub); font-size:12px; padding:20px 16px 30px; }
   .note { color:var(--sub); font-size:12px; margin-top:6px; }
+  /* VADHUVARA REELS on the website: vertical, swipe up, our own gold design */
+  #reelBar { display:none; max-width:1100px; margin:12px auto 0; padding:0 16px; }
+  #reelBar button { width:100%; padding:14px; border-radius:16px; border:1px solid var(--gold); background:linear-gradient(90deg,#5A0A24,#1C0610); color:var(--gold); font:inherit; font-size:16px; font-weight:700; cursor:pointer; }
+  #reels { position:fixed; inset:0; background:#000; z-index:50; display:none; overflow-y:scroll; scroll-snap-type:y mandatory; }
+  .reel { position:relative; height:100vh; height:100dvh; scroll-snap-align:start; display:flex; justify-content:center; background:#000; }
+  .reel .st { position:relative; height:100%; aspect-ratio:9/16; max-width:100%; overflow:hidden; background:#1a0610; }
+  .reel img.ph { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .6s; }
+  .reel img.ph.on { opacity:1; animation:kb 7s ease-out forwards; }
+  .reel iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .reel .frame { position:absolute; inset:3%; border:1.5px solid var(--gold); border-radius:14px; pointer-events:none; }
+  .reel .shade { position:absolute; left:0; right:0; bottom:0; height:55%; background:linear-gradient(transparent,rgba(42,6,18,.95)); pointer-events:none; }
+  .reel .info { position:absolute; left:7%; right:24%; bottom:9%; pointer-events:none; }
+  .reel .info small { color:var(--gold); font-weight:700; }
+  .reel .info h4 { font-size:clamp(20px,4.6vh,30px); margin:4px 0 8px; text-shadow:0 2px 8px #000; }
+  .chip { display:inline-block; padding:4px 12px; border-radius:16px; margin:0 6px 6px 0; font-weight:700; }
+  .chip.price { background:linear-gradient(90deg,#FFF0C2,#E8C35A); color:#2A0612; }
+  .chip.offer { background:#960A28; color:#fff; }
+  .reel .tag { position:absolute; right:7%; padding:2px 10px; border-radius:10px; font-size:12px; font-weight:700; }
+  .reel .tag.ad { top:8%; background:#C8102E; } .reel .tag.ai { top:12%; background:#3C2878; }
+  .reel .rail { position:absolute; right:4%; bottom:14%; display:flex; flex-direction:column; gap:12px; }
+  .reel .rail button { width:52px; height:52px; border-radius:50%; border:1px solid var(--gold); background:rgba(20,6,12,.55); font-size:22px; color:#fff; cursor:pointer; }
+  .reel .rail span { display:block; font-size:11px; text-align:center; text-shadow:0 1px 4px #000; }
+  #rtop { position:fixed; top:0; left:0; right:0; z-index:51; display:none; justify-content:space-between; align-items:center; padding:12px 16px; pointer-events:none; }
+  #rtop b { color:var(--gold); text-shadow:0 2px 6px #000; }
+  #rtop button { pointer-events:auto; background:rgba(0,0,0,.5); color:#fff; border:0; border-radius:50%; width:40px; height:40px; font-size:20px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -71,6 +96,10 @@
   <div class="card" id="card"><p id="cNow"></p><h2 id="cName"></h2><hr><p id="cEp"></p></div>
 </div>
 
+<div id="reelBar"><button id="reelBtn">🎬 వధూవర రీల్స్ — పైకి స్వైప్ చేస్తూ చూడండి</button></div>
+<div id="reels"></div>
+<div id="rtop"><b>🎬 వధూవర రీల్స్</b><button id="rclose" aria-label="మూసివేయి">✕</button></div>
+
 <nav id="chs"></nav>
 
 <section>
@@ -85,7 +114,7 @@
 // VADHUVARA TV on the website: reads the same signed playlist as the phone app (Firestore REST,
 // public read only), checks the owner's signature, then plays it like the channel in the app.
 const params = new URLSearchParams(location.search);
-const PROJECT = params.get('p') || '';
+const PROJECT = (params.get('p') || '').trim().replace(/[<>]/g, '');
 const BASE = 'https://firestore.googleapis.com/v1/projects/' + PROJECT + '/databases/(default)/documents/';
 const CH = ["వధూవర లైవ్","సినిమాలు","సంగీతం & వినోదం","షాపింగ్ & ఆఫర్లు","శుభాకాంక్షలు","వధూవర వెడ్డింగ్స్","ఫ్యాషన్ & ట్రెండ్స్","కుటుంబం & బంధాలు","వధూవర పంచాంగం","రుచి & వంటలు","ఆరోగ్యం & వెల్‌నెస్","మన సంస్కృతి","వ్యాపారం & ఆర్థికం","పెళ్లి కథలు","పిల్లలు & విద్య"];
 const $ = id => document.getElementById(id);
@@ -115,7 +144,15 @@ async function load() {
     PL = JSON.parse(json);
     $('state').textContent = '✔ యజమాని సంతకంతో ధృవీకరించబడిన ప్రసారం';
     return true;
-  } catch (e) { $('state').textContent = '⚠ ఛానల్ చేరలేదు — ఇంటర్నెట్ లేదా Firebase చదివే అనుమతి చూడండి.'; return false; }
+  } catch (e) {
+    const m = String(e && e.message || e);
+    let t = '⚠ ఛానల్ చేరలేదు — ఇంటర్నెట్ చూడండి.';
+    if (m === '404') t = '⚠ ప్లేలిస్ట్ ఇంకా క్లౌడ్‌లో లేదు (లేదా Project ID తప్పు: ' + PROJECT + ') — యాప్ TV స్టూడియోలో ఒక పోస్టర్/లింక్ జోడించి సేవ్ చేయండి.';
+    else if (m === '403') t = '⚠ Firebase చదివే అనుమతి లేదు — Firestore Rules లో vadhuvara_tv కి "allow read: if true" ఉందో చూడండి.';
+    else if (m === '400') t = '⚠ Project ID తప్పు: ' + PROJECT;
+    else if (e instanceof TypeError && /json|stringValue/i.test(m)) t = '⚠ ప్లేలిస్ట్ అసంపూర్ణంగా ఉంది — స్టూడియోలో మళ్ళీ సేవ్ చేయండి.';
+    $('state').textContent = t + '  [' + m + ']'; return false;
+  }
 }
 
 const cfg = () => Object.assign({ name: 'VADHUVARA TV', tag: "TREND & TRADITIONAL'S", slide: 8 }, (PL && PL.cfg) || {});
@@ -228,11 +265,81 @@ function channels() {
   });
 }
 
+/* ---------- VADHUVARA REELS (same signed list as the app) ---------- */
+const RCATS = ["✨ అన్నీ","💍 పెళ్లి కలెక్షన్","👗 ఫ్యాషన్ & ట్రెండ్స్","🔥 ఆఫర్లు","👨‍👩‍👧 కుటుంబం","🧒 పిల్లలు","🪔 భక్తి & సంస్కృతి","🎉 శుభాకాంక్షలు","📖 పెళ్లి కథలు"];
+let REELS = [];
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const lsGet = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+async function loadReels() {
+  try {
+    const f = await doc('vadhuvara_tv/reels');
+    const json = f.json.stringValue, sig = f.sig.stringValue;
+    if (!(await verify(json, sig))) return;
+    REELS = ((JSON.parse(json).reels) || []).filter(r => r.k !== 'invite').sort((a, b) => b.t - a.t);
+    if (!REELS.length) return;
+    $('reelBar').style.display = 'block';
+    const want = params.get('r'); if (want && $('reels').style.display !== 'block') openReels(want);
+  } catch (e) {}
+}
+function reelLink(r) { return location.origin + location.pathname + '?p=' + encodeURIComponent(PROJECT) + '&r=' + encodeURIComponent(r.id); }
+function liked(id) { return lsGet('vr_likes').split(',').includes(id); }
+function act(a, r, b) {
+  if (a === 'like') { let l = lsGet('vr_likes').split(',').filter(Boolean); if (l.includes(r.id)) l = l.filter(x => x !== r.id); else l.push(r.id); lsSet('vr_likes', l.join(',')); b.textContent = liked(r.id) ? '💛' : '🤍'; }
+  else if (a === 'share') { const url = reelLink(r), text = '🎬 ' + r.title + ' — వధూవర TV'; if (navigator.share) navigator.share({ title: r.title, text, url }).catch(() => {}); else window.open('https://wa.me/?text=' + encodeURIComponent(text + '\n' + url), '_blank'); }
+  else if (a === 'ask') { const msg = 'నమస్తే వధూవర వెడ్డింగ్ మాల్ 🙏\nరీల్‌లో చూశాను: ' + r.title + (r.price ? ' (₹' + String(r.price).replace('₹', '') + ')' : '') + '\nవివరాలు చెప్పగలరా?'; window.open('https://wa.me/919666205850?text=' + encodeURIComponent(msg), '_blank'); }
+}
+function stopReel(el) { clearInterval(el._t); el._t = 0; el.querySelectorAll('iframe').forEach(x => x.remove()); }
+async function playReel(el) {
+  const r = REELS[+el.dataset.i]; if (!r || el._t) return;
+  el._t = -2;
+  const st = el.querySelector('.st');
+  if (r.k === 'yt' || r.k === 'ig') {
+    const fr = document.createElement('iframe'); fr.allow = 'autoplay; encrypted-media; picture-in-picture'; fr.allowFullscreen = true;
+    const id = encodeURIComponent(r.src);
+    fr.src = r.k === 'yt' ? 'https://www.youtube.com/embed/' + id + '?autoplay=1&mute=1&playsinline=1&loop=1&playlist=' + id + '&controls=0&modestbranding=1&rel=0' : 'https://www.instagram.com/reel/' + id + '/embed/';
+    st.prepend(fr); el._t = -1; return;
+  }
+  let imgs = [...st.querySelectorAll('img.ph')];
+  if (!imgs.length) {
+    const ids = String(r.src || '').split(',').filter(Boolean);
+    for (const id of ids) { const im = document.createElement('img'); im.className = 'ph'; im.alt = ''; st.prepend(im); try { im.src = await mediaUrl(id); } catch (e) {} }
+    imgs = [...st.querySelectorAll('img.ph')].reverse();
+  }
+  if (el._t !== -2 || !imgs.length) return;
+  let j = 0; const show = () => { imgs.forEach((im, n) => im.classList.toggle('on', n === j)); };
+  show(); el._t = setInterval(() => { j = (j + 1) % imgs.length; show(); }, Math.max(2, r.sec || 3) * 1000);
+}
+function openReels(startId) {
+  const box = $('reels'); box.innerHTML = ''; box.style.display = 'block'; $('rtop').style.display = 'flex'; document.body.style.overflow = 'hidden';
+  try { ytPlayer && ytPlayer.pauseVideo(); } catch (e) {}
+  REELS.forEach((r, i) => {
+    const el = document.createElement('div'); el.className = 'reel'; el.dataset.i = i; el.id = 'reel-' + r.id;
+    el.innerHTML = '<div class="st"><div class="frame"></div><div class="shade"></div>' +
+      (r.ad ? '<div class="tag ad">ప్రకటన</div>' : '') + (r.ai ? '<div class="tag ai">AI సహాయంతో</div>' : '') +
+      '<div class="info"><small>' + esc(RCATS[r.cat] || '') + '</small><h4>' + esc(r.title) + '</h4>' +
+      (r.price ? '<span class="chip price">₹ ' + esc(String(r.price).replace('₹', '')) + '</span>' : '') +
+      (r.offer ? '<span class="chip offer">🎁 ' + esc(r.offer) + '</span>' : '') + '</div>' +
+      '<div class="rail"><div><button data-a="like">' + (liked(r.id) ? '💛' : '🤍') + '</button><span>ఇష్టం</span></div>' +
+      '<div><button data-a="share">📤</button><span>పంపు</span></div><div><button data-a="ask">💬</button><span>అడగండి</span></div></div></div>';
+    box.append(el);
+  });
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting && e.intersectionRatio >= 0.6) playReel(e.target); else stopReel(e.target); }), { root: box, threshold: [0.6] });
+  box.querySelectorAll('.reel').forEach(el => io.observe(el));
+  box.onclick = ev => { const b = ev.target.closest('button'); if (!b) return; const el = ev.target.closest('.reel'); act(b.dataset.a, REELS[+el.dataset.i], b); };
+  const s = startId ? document.getElementById('reel-' + startId) : null; if (s) s.scrollIntoView();
+}
+function closeReels() { const box = $('reels'); box.querySelectorAll('.reel').forEach(stopReel); box.style.display = 'none'; box.innerHTML = ''; $('rtop').style.display = 'none'; document.body.style.overflow = ''; }
+$('reelBtn').onclick = () => openReels('');
+$('rclose').onclick = closeReels;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('reels').style.display === 'block') closeReels(); });
+
 setInterval(() => { const d = new Date(); $('clock').textContent = ['ఆది','సోమ','మంగళ','బుధ','గురు','శుక్ర','శని'][d.getDay()] + ' ' + d.getDate() + ' • ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' • HD'; }, 1000);
 
 (async () => {
   const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.append(s);
   if (await load()) { chrome(); channels(); next(); }
+  loadReels();
   // new programmes, a live start, the breaking band: checked every minute
   setInterval(async () => { const was = PL && PL.ver; if (await load()) { chrome(); channels(); if (PL.ver !== was && (liveNow() || cur === 0)) { if (liveNow()) next(); } } }, 60000);
 })();
