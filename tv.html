@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="te">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VADHUVARA TV — Live</title>
+<meta name="description" content="వధూవర TV — TREND & TRADITIONAL'S. వధూవర వెడ్డింగ్ మాల్, MG Road, మెదక్">
+<style>
+  :root { --gold:#D4AF37; --ivory:#FFF6E0; --black:#050505; --deep:#1C1810; --red:#C8102E; --sub:#CDBB93; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--black); color:var(--ivory); font-family:"Noto Sans Telugu","Mandali","Ramabhadra",system-ui,sans-serif; }
+  header { display:flex; align-items:center; gap:12px; padding:12px 16px; background:linear-gradient(90deg,var(--deep),var(--black)); border-bottom:1px solid #3a3020; }
+  header img { width:44px; height:44px; border-radius:50%; }
+  header h1 { font-size:20px; color:var(--gold); letter-spacing:1px; }
+  header p { font-size:12px; color:var(--sub); }
+  #tv { position:relative; width:100%; max-width:1100px; margin:0 auto; aspect-ratio:16/9; background:#000; overflow:hidden; }
+  .layer { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .9s; }
+  .layer.on { opacity:1; }
+  .kb { animation:kb 12s ease-out forwards; }
+  @keyframes kb { from { transform:scale(1) translate(0,0); } to { transform:scale(1.12) translate(2%,-1%); } }
+  #yt { position:absolute; inset:0; width:100%; height:100%; display:none; }
+  .bug { position:absolute; top:3%; left:2%; display:flex; align-items:center; gap:8px; padding:5px 14px 5px 6px; border-radius:24px; background:linear-gradient(90deg,rgba(28,24,16,.85),rgba(0,0,0,.4)); }
+  .bug img { width:30px; height:30px; border-radius:50%; }
+  .bug b { color:var(--gold); font-size:clamp(11px,1.8vw,17px); }
+  .bug small { display:block; color:#fff; font-size:clamp(9px,1.2vw,12px); }
+  .clock { position:absolute; top:3%; right:2%; padding:4px 12px; border-radius:14px; background:rgba(0,0,0,.6); font-weight:700; font-size:clamp(10px,1.5vw,14px); }
+  .badge { position:absolute; top:12%; right:2%; padding:2px 8px; border-radius:8px; background:rgba(0,0,0,.6); font-size:clamp(9px,1.1vw,11px); display:none; }
+  .lower { position:absolute; left:3%; bottom:20%; display:flex; opacity:0; transform:translateX(-30px); transition:all .7s; max-width:70%; }
+  .lower.on { opacity:1; transform:none; }
+  .lower i { width:6px; background:var(--gold); }
+  .lower div { padding:8px 18px; background:linear-gradient(90deg,rgba(5,5,5,.92),rgba(28,24,16,.6)); }
+  .lower b { color:var(--gold); font-size:clamp(13px,2.2vw,22px); display:block; }
+  .lower span { font-size:clamp(11px,1.6vw,16px); }
+  .brk { position:absolute; left:0; right:0; bottom:9%; background:var(--red); color:#fff; font-weight:700; padding:5px 14px; font-size:clamp(11px,1.6vw,15px); display:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ticker { position:absolute; left:0; right:0; bottom:0; height:9%; display:flex; background:linear-gradient(90deg,var(--deep),var(--black)); }
+  .ticker b { background:var(--gold); color:#000; display:flex; align-items:center; padding:0 12px; font-size:clamp(11px,1.6vw,15px); }
+  .ticker .run { flex:1; overflow:hidden; position:relative; display:flex; align-items:center; }
+  .ticker .run span { position:absolute; white-space:nowrap; font-size:clamp(11px,1.7vw,16px); animation:run 40s linear infinite; }
+  @keyframes run { from { transform:translateX(100vw); } to { transform:translateX(-100%); } }
+  .card { position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--deep),var(--black)); text-align:center; }
+  .card h2 { color:var(--gold); font-size:clamp(22px,5vw,46px); text-shadow:0 0 22px rgba(212,175,55,.6); }
+  .card p { margin-top:8px; font-size:clamp(12px,2vw,18px); }
+  .card hr { width:220px; border:0; border-top:2px solid var(--gold); margin:10px auto; }
+  .live { color:#fff; background:var(--red); border-radius:6px; padding:0 6px; }
+  nav { max-width:1100px; margin:12px auto; padding:0 16px; display:flex; gap:8px; overflow-x:auto; }
+  nav button { flex:none; background:var(--deep); color:var(--gold); border:1px solid #4a3a20; border-radius:18px; padding:8px 14px; font:inherit; font-size:14px; cursor:pointer; }
+  nav button.on { background:var(--gold); color:#000; }
+  section { max-width:1100px; margin:0 auto; padding:8px 16px 40px; }
+  section h3 { color:var(--gold); margin:14px 0 8px; font-size:16px; }
+  .row { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid #2a2418; font-size:14px; }
+  .row.now { color:var(--gold); font-weight:700; }
+  footer { text-align:center; color:var(--sub); font-size:12px; padding:20px 16px 30px; }
+  .note { color:var(--sub); font-size:12px; margin-top:6px; }
+</style>
+</head>
+<body>
+<header>
+  <img src="logo.png" alt="" onerror="this.style.display='none'">
+  <div><h1 id="hName">VADHUVARA TV</h1><p id="hTag">TREND &amp; TRADITIONAL'S</p></div>
+</header>
+
+<div id="tv">
+  <img id="i1" class="layer" alt=""><img id="i2" class="layer" alt="">
+  <div id="yt"><div id="ytp"></div></div>
+  <div class="bug"><img src="logo.png" alt="" onerror="this.style.display='none'"><div><b id="bName">VADHUVARA TV</b><small id="bProg"></small></div></div>
+  <div class="clock" id="clock"></div>
+  <div class="badge" id="badge"></div>
+  <div class="lower" id="lower"><i></i><div><b id="lt"></b><span id="ls"></span></div></div>
+  <div class="brk" id="brk"></div>
+  <div class="ticker"><b>🔥 ఆఫర్లు</b><div class="run"><span id="tk"></span></div></div>
+  <div class="card" id="card"><p id="cNow"></p><h2 id="cName"></h2><hr><p id="cEp"></p></div>
+</div>
+
+<nav id="chs"></nav>
+
+<section>
+  <h3>📅 ఈరోజు కార్యక్రమాల పట్టిక</h3>
+  <div id="epg"></div>
+  <p class="note" id="state">⏳ ఛానల్ తెరుస్తున్నాము...</p>
+</section>
+
+<footer>వధూవర వెడ్డింగ్ మాల్, MG Road, మెదక్ • 📞 9666205850<br>AI సహాయంతో రూపొందించిన కార్యక్రమాలపై తెరపై గుర్తు ఉంటుంది • ప్రకటనలపై "ప్రకటన" గుర్తు ఉంటుంది</footer>
+
+<script>
+// VADHUVARA TV on the website: reads the same signed playlist as the phone app (Firestore REST,
+// public read only), checks the owner's signature, then plays it like the channel in the app.
+const params = new URLSearchParams(location.search);
+const PROJECT = params.get('p') || '';
+const BASE = 'https://firestore.googleapis.com/v1/projects/' + PROJECT + '/databases/(default)/documents/';
+const CH = ["వధూవర లైవ్","సినిమాలు","సంగీతం & వినోదం","షాపింగ్ & ఆఫర్లు","శుభాకాంక్షలు","వధూవర వెడ్డింగ్స్","ఫ్యాషన్ & ట్రెండ్స్","కుటుంబం & బంధాలు","వధూవర పంచాంగం","రుచి & వంటలు","ఆరోగ్యం & వెల్‌నెస్","మన సంస్కృతి","వ్యాపారం & ఆర్థికం","పెళ్లి కథలు","పిల్లలు & విద్య"];
+const $ = id => document.getElementById(id);
+let PL = null, cur = 0, idx = -1, gen = 0, curProg = '', front = $('i1'), ytPlayer = null, ytReady = false;
+const media = {};
+
+function today() { const d = new Date(); return '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); }
+const active = it => (!it.from || today() >= it.from) && (!it.to || today() <= it.to);
+async function doc(path) { const r = await fetch(BASE + path); if (!r.ok) throw new Error(r.status); return (await r.json()).fields || {}; }
+const b64bytes = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+async function verify(json, sig) {
+  try {
+    const k = await doc('vadhuvara_crm/owner_key');
+    const pub = k.pub && k.pub.stringValue; if (!pub) return false;
+    const key = await crypto.subtle.importKey('spki', b64bytes(pub), { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
+    return await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, b64bytes(sig), new TextEncoder().encode(json));
+  } catch (e) { return false; }
+}
+
+async function load() {
+  if (!PROJECT) { $('state').textContent = '⚠ లింక్‌లో ?p=<Firebase ప్రాజెక్ట్ ID> లేదు — యాప్ స్టూడియోలోని "వెబ్‌సైట్ Live TV" లింక్ వాడండి.'; return false; }
+  try {
+    const f = await doc('vadhuvara_tv/playlist');
+    const json = f.json.stringValue, sig = f.sig.stringValue;
+    if (!(await verify(json, sig))) { $('state').textContent = '⚠ యజమాని సంతకం సరిపోలలేదు — ప్రసారం ఆపాం.'; return false; }
+    PL = JSON.parse(json);
+    $('state').textContent = '✔ యజమాని సంతకంతో ధృవీకరించబడిన ప్రసారం';
+    return true;
+  } catch (e) { $('state').textContent = '⚠ ఛానల్ చేరలేదు — ఇంటర్నెట్ లేదా Firebase చదివే అనుమతి చూడండి.'; return false; }
+}
+
+const cfg = () => Object.assign({ name: 'VADHUVARA TV', tag: "TREND & TRADITIONAL'S", slide: 8 }, (PL && PL.cfg) || {});
+const items = () => ((PL && PL.items) || []).filter(it => it.t !== 'mus' && active(it));
+function nowPlaying(c) { const l = items().filter(it => !it.live && !it.prog && (it.ch === c || (c === 0 && it.ch !== 1))); return l.filter(i => i.camp).concat(l.filter(i => !i.camp)); }
+const liveNow = () => items().find(it => it.live && it.t !== 'img');
+function progs() { return ((PL && PL.progs) || []).slice().sort((a, b) => (a.sh * 60 + a.sm) - (b.sh * 60 + b.sm)); }
+const onDay = (p, wd) => ((p.days === undefined ? 127 : p.days) >> wd) & 1;
+function currentProg(c) {
+  const d = new Date(), wd = d.getDay(), m = d.getHours() * 60 + d.getMinutes();
+  return progs().find(p => { const s = p.sh * 60 + p.sm, e = p.eh * 60 + p.em; return (p.ch || 0) === c && (e > s ? onDay(p, wd) && m >= s && m < e : (onDay(p, wd) && m >= s) || (onDay(p, (wd + 6) % 7) && m < e)); });
+}
+const hm = (h, m) => ((h % 12) || 12) + ':' + String(m).padStart(2, '0') + (h < 12 || h === 24 ? ' AM' : ' PM');
+
+async function mediaUrl(id) {
+  if (media[id]) return media[id];
+  const f = await doc('vadhuvara_tv_media/' + encodeURIComponent(id));
+  media[id] = 'data:image/jpeg;base64,' + f.b64.stringValue; return media[id];
+}
+
+function overlays(it) {
+  $('lt').textContent = it.title || 'వధూవర వెడ్డింగ్ మాల్';
+  $('ls').textContent = it.sub || 'MG Road, మెదక్ • 📞 9666205850';
+  const L = $('lower'); L.classList.remove('on'); setTimeout(() => L.classList.add('on'), 900);
+  const b = [it.age ? (it.age === 'U' || it.age === 'A' ? it.age : 'U/A ' + it.age) : '', it.ai ? 'AI సహాయంతో రూపొందించబడింది' : '', it.camp ? 'ప్రకటన' : ''].filter(Boolean);
+  $('badge').style.display = b.length ? 'block' : 'none'; $('badge').textContent = b.join(' • ');
+}
+
+function stopMedia() { $('yt').style.display = 'none'; try { ytPlayer && ytPlayer.stopVideo(); } catch (e) {} }
+
+async function photo(it, g) {
+  try {
+    const url = await mediaUrl(it.src); if (g !== gen) return;
+    const back = front === $('i1') ? $('i2') : $('i1');
+    back.src = url; back.classList.remove('kb'); void back.offsetWidth; back.classList.add('kb', 'on'); front.classList.remove('on'); front = back;
+    overlays(it);
+    setTimeout(() => { if (g === gen) next(); }, Math.max(4, it.auto ? it.sec : cfg().slide) * 1000);
+  } catch (e) { setTimeout(() => { if (g === gen) next(); }, 500); }
+}
+
+function youtube(it, g) {
+  front.classList.remove('on'); $('yt').style.display = 'block'; overlays(it);
+  const list = it.src.startsWith('list:'), id = it.src.replace('list:', '');
+  const opts = { autoplay: 1, controls: 1, rel: 0, modestbranding: 1, playsinline: 1, mute: 1 };
+  if (list) { opts.listType = 'playlist'; opts.list = id; }
+  const go = () => {
+    if (ytPlayer) { list ? ytPlayer.loadPlaylist({ list: id, listType: 'playlist' }) : ytPlayer.loadVideoById(id); return; }
+    ytPlayer = new YT.Player('ytp', { width: '100%', height: '100%', videoId: list ? undefined : id, playerVars: opts,
+      events: { onStateChange: e => { if (e.data === 0 && g === gen) next(); }, onError: () => { if (g === gen) next(); } } });
+  };
+  ytReady ? go() : (window.onYouTubeIframeAPIReady = () => { ytReady = true; go(); });
+  if (!(it.live || it.ch === 1 || list)) setTimeout(() => { if (g === gen) next(); }, 15 * 60000);
+}
+
+function play(it, g) { if (it.t === 'img') photo(it, g); else if (it.t === 'yt') youtube(it, g); else setTimeout(() => { if (g === gen) next(); }, 300); }
+
+function showCard(p, it, then) {
+  $('cNow').textContent = 'ఇప్పుడు ప్రసారం • ' + hm(p.sh, p.sm) + ' – ' + hm(p.eh, p.em);
+  $('cName').textContent = (p.icon || '📺') + ' ' + p.name;
+  $('cEp').textContent = it.ep > 0 ? 'ఎపిసోడ్ ' + it.ep : (it.title || p.desc || '');
+  const c = $('card'); c.style.display = 'flex'; setTimeout(() => { c.style.display = 'none'; then(); }, 3400);
+}
+
+function next() {
+  const g = ++gen; stopMedia();
+  if (!PL) return;
+  const live = cur === 0 ? liveNow() : null;
+  if (live) { $('bProg').innerHTML = '<span class="live">LIVE</span>'; play(live, g); return; }
+  const pr = currentProg(cur);
+  let eps = pr ? items().filter(it => it.prog === pr.id).sort((a, b) => a.ep - b.ep) : [];
+  if (pr && !eps.length && pr.div > 0) eps = nowPlaying(pr.div);
+  if (pr && eps.length) {
+    $('bProg').textContent = 'ఇప్పుడు: ' + (pr.icon || '') + ' ' + pr.name;
+    const k = 'vtv_ep_' + pr.id, n = +(localStorage.getItem(k) || 0); try { localStorage.setItem(k, n + 1); } catch (e) {}
+    const it = eps[n % eps.length];
+    if (pr.id !== curProg) { curProg = pr.id; showCard(pr, it, () => { if (g === gen) play(it, g); }); } else play(it, g);
+    return;
+  }
+  curProg = ''; $('bProg').textContent = '';
+  const l = nowPlaying(cur);
+  if (!l.length) { $('lt').textContent = CH[cur] + ' — కార్యక్రమాలు త్వరలో'; $('ls').textContent = 'వధూవర వెడ్డింగ్ మాల్, మెదక్'; $('lower').classList.add('on'); setTimeout(() => { if (g === gen) next(); }, 20000); return; }
+  idx = (idx + 1) % l.length; play(l[idx], g);
+}
+
+function chrome() {
+  const c = cfg();
+  $('hName').textContent = c.name; $('bName').textContent = c.name; $('hTag').textContent = c.tag; document.title = c.name + ' — Live';
+  const lines = ((PL && PL.ticker) || []).concat(items().filter(i => i.camp && i.sub).map(i => i.sub));
+  $('tk').textContent = (lines.length ? Array.from(new Set(lines)) : ['వధూవర వెడ్డింగ్ మాల్, MG Road, మెదక్ — పెళ్లి షాపింగ్ అంతా ఒకే చోట • 📞 9666205850']).join('     ◆     ');
+  const b = c.brk && (!c.brkTo || today() <= c.brkTo) ? c.brk : '';
+  $('brk').style.display = b ? 'block' : 'none'; $('brk').textContent = '⚡ ప్రత్యేక ప్రకటన ▸ ' + b;
+  const wd = new Date().getDay(), p = currentProg(0);
+  $('epg').innerHTML = '';
+  progs().filter(x => onDay(x, wd) && (x.ch || 0) === 0).forEach(x => {
+    const r = document.createElement('div'); r.className = 'row' + (p && p.id === x.id ? ' now' : '');
+    const a = document.createElement('span'); a.textContent = hm(x.sh, x.sm);
+    const n = document.createElement('span'); n.textContent = (x.icon || '') + ' ' + x.name + (p && p.id === x.id ? '  🔴' : '');
+    r.append(a, n); $('epg').append(r);
+  });
+  if (!$('epg').children.length) $('epg').textContent = 'రోజంతా వధూవర కార్యక్రమాలు, ఆఫర్లు, శుభాకాంక్షలు';
+}
+
+function channels() {
+  const nav = $('chs'); nav.innerHTML = '';
+  CH.forEach((n, i) => {
+    if (i !== 0 && !nowPlaying(i).length) return;
+    const b = document.createElement('button'); b.textContent = n; if (i === cur) b.className = 'on';
+    b.onclick = () => { cur = i; idx = -1; curProg = ''; channels(); next(); };
+    nav.append(b);
+  });
+}
+
+setInterval(() => { const d = new Date(); $('clock').textContent = ['ఆది','సోమ','మంగళ','బుధ','గురు','శుక్ర','శని'][d.getDay()] + ' ' + d.getDate() + ' • ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' • HD'; }, 1000);
+
+(async () => {
+  const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.append(s);
+  if (await load()) { chrome(); channels(); next(); }
+  // new programmes, a live start, the breaking band: checked every minute
+  setInterval(async () => { const was = PL && PL.ver; if (await load()) { chrome(); channels(); if (PL.ver !== was && (liveNow() || cur === 0)) { if (liveNow()) next(); } } }, 60000);
+})();
+</script>
+</body>
+</html>
